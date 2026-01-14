@@ -71,7 +71,7 @@ export function SettingsPanel({
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Settings
+        Device Frames
       </h2>
 
       {/* Device Selector */}
@@ -217,6 +217,16 @@ export function SettingsPanel({
         >
           {isProcessing ? "Processing..." : "Download"}
         </button>
+      </div>
+
+      <div className="flex gap-3 justify-center text-xs text-zinc-500 dark:text-zinc-400 mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+        <a href="/about" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+          About
+        </a>
+        <span>·</span>
+        <a href="/docs" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+          API
+        </a>
       </div>
     </div>
   );

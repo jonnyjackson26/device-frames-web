@@ -156,10 +156,10 @@ export default function Home() {
   const screen = selectedFrame?.template.screen;
 
   return (
-    <div className="h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans overflow-hidden p-4">
-      <main className="h-full flex flex-col md:flex-row gap-8">
+    <div className="h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans overflow-auto md:overflow-hidden p-4">
+      <main className="flex flex-col md:flex-row md:h-full gap-8">
         {/* Phone Panel */}
-        <div className="flex-1 min-w-0 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center overflow-auto">
+        <div className="h-screen md:h-full md:flex-1 min-w-0 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center md:overflow-auto">
           <div
             className="relative w-full h-full max-w-full flex items-center justify-center"
             style={{
@@ -176,7 +176,7 @@ export default function Home() {
         </div>
 
         {/* Settings Panel */}
-        <div className="w-full md:w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 overflow-auto">
+        <div className="w-full md:w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 md:overflow-auto">
           <SettingsPanel
             deviceList={deviceList}
             selectedCategory={category}
