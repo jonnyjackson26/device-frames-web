@@ -166,75 +166,64 @@ export default function Home() {
   const screen = selectedFrame?.template.screen;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans py-12 px-4">
-      <main className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-3">
-            Device Frame Studio
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Add beautiful device frames to your screenshots
-          </p>
+    <div className="h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans overflow-hidden p-4">
+      <main className="h-full flex flex-col md:flex-row gap-8">
+        {/* Phone Panel */}
+        <div className="flex-1 min-w-0 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center overflow-auto">
+          <div
+            className="relative w-full h-full max-w-full flex items-center justify-center"
+            style={{
+              aspectRatio: frameSize ? `${frameSize.width}/${frameSize.height}` : "9/16",
+            }}
+          >
+            <Phone
+              frameImageUrl={frameImageUrl}
+              onFileSelect={handleFileSelect}
+              selectedFile={selectedFile}
+            />
+
+            {/* Screen overlay for preview */}
+            {frameImageUrl && frameSize && screen && previewUrl && (
+              <div className="absolute inset-0">
+                <div
+                  className="absolute overflow-hidden"
+                  style={{
+                    top: `${(screen.y / frameSize.height) * 100}%`,
+                    left: `${(screen.x / frameSize.width) * 100}%`,
+                    width: `${(screen.width / frameSize.width) * 100}%`,
+                    height: `${(screen.height / frameSize.height) * 100}%`,
+                  }}
+                >
+                  <img
+                    src={previewUrl}
+                    alt="Uploaded screenshot"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Phone Panel */}
-          <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6">
-            <div
-              className="relative w-full"
-              style={{
-                aspectRatio: frameSize ? `${frameSize.width}/${frameSize.height}` : "9/16",
-              }}
-            >
-              <Phone
-                frameImageUrl={frameImageUrl}
-                onFileSelect={handleFileSelect}
-                selectedFile={selectedFile}
-              />
-
-              {/* Screen overlay for preview */}
-              {frameImageUrl && frameSize && screen && previewUrl && (
-                <div className="absolute inset-0">
-                  <div
-                    className="absolute overflow-hidden"
-                    style={{
-                      top: `${(screen.y / frameSize.height) * 100}%`,
-                      left: `${(screen.x / frameSize.width) * 100}%`,
-                      width: `${(screen.width / frameSize.width) * 100}%`,
-                      height: `${(screen.height / frameSize.height) * 100}%`,
-                    }}
-                  >
-                    <img
-                      src={previewUrl}
-                      alt="Uploaded screenshot"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Settings Panel */}
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6">
-            <SettingsPanel
-              deviceList={deviceList}
-              selectedCategory={category}
-              selectedDevice={deviceType}
-              selectedVariation={deviceVariation}
-              onCategoryChange={setCategory}
-              onDeviceChange={setDeviceType}
-              onVariationChange={setDeviceVariation}
-              backgroundColor={backgroundColor}
-              onBackgroundColorChange={setBackgroundColor}
-              onDownload={handleDownload}
-              onNewImage={handleReset}
-              isProcessing={isProcessing}
-              error={error}
-              hasFramedImage={framedImageUrl !== null}
-              hasFile={selectedFile !== null}
-            />
-          </div>
+        {/* Settings Panel */}
+        <div className="w-full md:w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 overflow-auto">
+          <SettingsPanel
+            deviceList={deviceList}
+            selectedCategory={category}
+            selectedDevice={deviceType}
+            selectedVariation={deviceVariation}
+            onCategoryChange={setCategory}
+            onDeviceChange={setDeviceType}
+            onVariationChange={setDeviceVariation}
+            backgroundColor={backgroundColor}
+            onBackgroundColorChange={setBackgroundColor}
+            onDownload={handleDownload}
+            onNewImage={handleReset}
+            isProcessing={isProcessing}
+            error={error}
+            hasFramedImage={framedImageUrl !== null}
+            hasFile={selectedFile !== null}
+          />
         </div>
       </main>
     </div>
