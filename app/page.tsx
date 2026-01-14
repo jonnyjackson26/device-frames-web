@@ -124,7 +124,9 @@ export default function Home() {
     if (framedImageUrl) {
       const a = document.createElement("a");
       a.href = framedImageUrl;
-      a.download = `framed-${selectedFile?.name || "image"}.png`;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `${deviceType}-${deviceVariation}-${timestamp}.png`;
+      a.download = filename;
       a.click();
     }
   };
@@ -137,6 +139,7 @@ export default function Home() {
       if (current) URL.revokeObjectURL(current);
       return null;
     });
+    setBackgroundColor("");
     setError(null);
   };
 

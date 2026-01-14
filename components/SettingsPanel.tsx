@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DeviceListResponse, CATEGORY_LABELS } from "@/lib/types";
 
 interface SettingsPanelProps {
@@ -37,6 +38,8 @@ export function SettingsPanel({
   hasFramedImage,
   hasFile,
 }: SettingsPanelProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
   if (!deviceList) {
     return (
       <div className="space-y-4">
@@ -79,7 +82,7 @@ export function SettingsPanel({
               htmlFor={categoryId}
               className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
             >
-              Device Category *
+              Device Category
             </label>
             <select
               id={categoryId}
@@ -107,7 +110,7 @@ export function SettingsPanel({
               htmlFor={deviceId}
               className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
             >
-              Device Model *
+              Device Model
             </label>
             <select
               id={deviceId}
@@ -133,7 +136,7 @@ export function SettingsPanel({
               htmlFor={variationId}
               className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
             >
-              Device Variation *
+              Device Variation
             </label>
             <select
               id={variationId}
@@ -152,21 +155,45 @@ export function SettingsPanel({
         </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="background-color"
-          className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+      <button
+        onClick={() => setAdvancedOpen(!advancedOpen)}
+        className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors cursor-pointer -ml-4 pl-4 py-2"
+      >
+        <span>Advanced Settings</span>
+        <svg
+          className={`w-3 h-3 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          Background Color (optional)
-        </label>
-        <input
-          id="background-color"
-          type="color"
-          value={backgroundColor || "#FFFFFF"}
-          onChange={(e) => onBackgroundColorChange(e.target.value)}
-          className="w-full h-10 px-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-        />
-      </div>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
+        </svg>
+      </button>
+
+      {advancedOpen && (
+        <div className="space-y-4 mt-2">
+          <div>
+            <label
+              htmlFor="background-color"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+            >
+              Background Color
+            </label>
+            <input
+              id="background-color"
+              type="color"
+              value={backgroundColor || "#FFFFFF"}
+              onChange={(e) => onBackgroundColorChange(e.target.value)}
+              className="h-10 cursor-pointer"
+            />
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
