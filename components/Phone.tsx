@@ -1,27 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId } from "react";
+import { useState, useCallback, useId } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 
 interface PhoneProps {
-  frameImageUrl: string | null;
+  framedImageUrl: string | null;
+  isLoading: boolean;
   onFileSelect: (file: File) => void;
-  selectedFile: File | null;
+  emptyFrameUrl: string | null;
   className?: string;
 }
 
-export function Phone({ frameImageUrl, onFileSelect, selectedFile, className }: PhoneProps) {
-  const [displayImageUrl, setDisplayImageUrl] = useState<string | null>("/placeholder_frame.png");
+export function Phone({ framedImageUrl, isLoading, onFileSelect, emptyFrameUrl, className }: PhoneProps) {
   const inputId = useId();
-
-  // Initialize with placeholder, swap when frameImageUrl changes
-  useEffect(() => {
-    if (frameImageUrl) {
-      setDisplayImageUrl(frameImageUrl);
-    } else {
-      setDisplayImageUrl("/placeholder_frame.png");
-    }
-  }, [frameImageUrl]);
 
   const handleDrop = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
@@ -54,35 +45,52 @@ export function Phone({ frameImageUrl, onFileSelect, selectedFile, className }: 
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      {displayImageUrl && (
+      {/* Show framed result or empty frame */}
+      {framedImageUrl ? (
         <img
-          src={displayImageUrl}
-          alt="Device frame"
-          className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+          src={framedImageUrl}
+          alt="Framed screenshot"
+          className="w-full h-full object-contain"
         />
-      )}
-      
-      {/* Drag/Drop overlay hint */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div className="flex flex-col items-center gap-2">
-          <svg
-            className="w-12 h-12 text-zinc-400 dark:text-zinc-600 opacity-60"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+      ) : (
+        <>
+          {emptyFrameUrl && (
+            <img
+              src={emptyFrameUrl}
+              alt="Device frame"
+              className="w-full h-full object-contain pointer-events-none select-none"
             />
-          </svg>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center font-medium">
-            Drag and drop or <span className="text-blue-600 dark:text-blue-400 underline">browse files</span>
-          </p>
-        </div>
-      </div>
+          )}
+          
+          {/* Upload hint overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <svg
+                  className="w-12 h-12 text-zinc-400 dark:text-zinc-600 opacity-60"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center font-medium">
+                  Drag and drop or <span className="text-blue-600 dark:text-blue-400 underline">browse files</span>
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
       
       <input
         type="file"

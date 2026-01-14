@@ -184,7 +184,7 @@ export function SettingsPanel({
           </button>
         )}
         <button
-          type="submit"
+          onClick={onDownload}
           disabled={!hasFramedImage}
           className="flex-1 py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white font-medium rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
         >

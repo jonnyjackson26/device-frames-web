@@ -15,7 +15,6 @@ export default function Home() {
   const [backgroundColor, setBackgroundColor] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [framedImageUrl, setFramedImageUrl] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
 
@@ -109,19 +108,11 @@ export default function Home() {
   }, [selectedFile, category, deviceType, deviceVariation, backgroundColor]);
 
   useEffect(() => () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-  }, [previewUrl]);
-
-  useEffect(() => () => {
     if (framedImageUrl) URL.revokeObjectURL(framedImageUrl);
   }, [framedImageUrl]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
-    setPreviewUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return URL.createObjectURL(file);
-    });
     setFramedImageUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return null;
@@ -142,10 +133,6 @@ export default function Home() {
     requestIdRef.current += 1;
     setIsProcessing(false);
     setSelectedFile(null);
-    setPreviewUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return null;
-    });
     setFramedImageUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return null;
@@ -177,31 +164,11 @@ export default function Home() {
             }}
           >
             <Phone
-              frameImageUrl={frameImageUrl}
+              framedImageUrl={framedImageUrl}
+              isLoading={isProcessing}
               onFileSelect={handleFileSelect}
-              selectedFile={selectedFile}
+              emptyFrameUrl={frameImageUrl}
             />
-
-            {/* Screen overlay for preview */}
-            {frameImageUrl && frameSize && screen && previewUrl && (
-              <div className="absolute inset-0">
-                <div
-                  className="absolute overflow-hidden"
-                  style={{
-                    top: `${(screen.y / frameSize.height) * 100}%`,
-                    left: `${(screen.x / frameSize.width) * 100}%`,
-                    width: `${(screen.width / frameSize.width) * 100}%`,
-                    height: `${(screen.height / frameSize.height) * 100}%`,
-                  }}
-                >
-                  <img
-                    src={previewUrl}
-                    alt="Uploaded screenshot"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
