@@ -1,4 +1,15 @@
-import { FrameOptions } from "./types";
+import { FrameOptions, DeviceListResponse } from "./types";
+
+export async function listDevices(): Promise<DeviceListResponse> {
+  // Use local API route to avoid CORS issues
+  const response = await fetch("/api/list-devices");
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch device list");
+  }
+  
+  return await response.json();
+}
 
 export async function applyDeviceFrame(
   options: FrameOptions

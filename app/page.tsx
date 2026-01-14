@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileUpload } from "@/components/FileUpload";
-import { applyDeviceFrame } from "@/lib/api";
-import { DEVICE_OPTIONS } from "@/lib/types";
+import { DeviceSelector } from "@/components/DeviceSelector";
+import { applyDeviceFrame, listDevices } from "@/lib/api";
+import { DeviceListResponse } from "@/lib/types";
 
 export default function Home() {
+  const [deviceList, setDeviceList] = useState<DeviceListResponse | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [category, setCategory] = useState("");
   const [deviceType, setDeviceType] = useState("");
   const [deviceVariation, setDeviceVariation] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
@@ -14,8 +17,15 @@ export default function Home() {
   const [framedImageUrl, setFramedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedDevice = DEVICE_OPTIONS.find((d) => d.name === deviceType);
-  const variations = selectedDevice?.variations || [];
+  // Fetch device list on mount
+  useEffect(() => {
+    listDevices()
+      .then(setDeviceList)
+      .catch((err) => {
+        console.error("Failed to load device list:", err);
+        setError("Failed to load device list. Please refresh the page.");
+      });
+  }, []);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -26,7 +36,7 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFile || !deviceType || !deviceVariation) {
+    if (!selectedFile || !category || !deviceType || !deviceVariation) {
       setError("Please fill in all required fields");
       return;
     }
@@ -40,6 +50,7 @@ export default function Home() {
         device_type: deviceType,
         device_variation: deviceVariation,
         background_color: backgroundColor || undefined,
+        category,
       });
 
       const url = URL.createObjectURL(blob);
@@ -62,6 +73,7 @@ export default function Home() {
 
   const handleReset = () => {
     setSelectedFile(null);
+    setCategory("");
     setDeviceType("");
     setDeviceVariation("");
     setBackgroundColor("");
@@ -89,57 +101,15 @@ export default function Home() {
                 selectedFile={selectedFile}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="device-type"
-                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
-                  >
-                    Device Type *
-                  </label>
-                  <select
-                    id="device-type"
-                    value={deviceType}
-                    onChange={(e) => {
-                      setDeviceType(e.target.value);
-                      setDeviceVariation("");
-                    }}
-                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
-                    required
-                  >
-                    <option value="">Select device</option>
-                    {DEVICE_OPTIONS.map((device) => (
-                      <option key={device.name} value={device.name}>
-                        {device.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="device-variation"
-                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
-                  >
-                    Device Color *
-                  </label>
-                  <select
-                    id="device-variation"
-                    value={deviceVariation}
-                    onChange={(e) => setDeviceVariation(e.target.value)}
-                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
-                    required
-                    disabled={!deviceType}
-                  >
-                    <option value="">Select color</option>
-                    {variations.map((variation) => (
-                      <option key={variation} value={variation}>
-                        {variation}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <DeviceSelector
+                deviceList={deviceList}
+                selectedCategory={category}
+                selectedDevice={deviceType}
+                selectedVariation={deviceVariation}
+                onCategoryChange={setCategory}
+                onDeviceChange={setDeviceType}
+                onVariationChange={setDeviceVariation}
+              />
 
               <div>
                 <label
@@ -169,7 +139,7 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={!selectedFile || !deviceType || !deviceVariation || isProcessing}
+              disabled={!selectedFile || !category || !deviceType || !deviceVariation || isProcessing}
               className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
             >
               {isProcessing ? "Processing..." : "Apply Frame"}

@@ -3,6 +3,44 @@ export interface FrameOptions {
   device_type: string;
   device_variation: string;
   background_color?: string;
+  category?: string;
+}
+
+export interface FrameTemplate {
+  frame: string;
+  mask: string;
+  screen: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  frameSize: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface DeviceVariation {
+  frame_png: string;
+  frame_png_path: string;
+  template: FrameTemplate;
+  frame_size: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface DeviceType {
+  [variation: string]: DeviceVariation;
+}
+
+export interface DeviceCategory {
+  [deviceType: string]: DeviceType;
+}
+
+export interface DeviceListResponse {
+  [category: string]: DeviceCategory;
 }
 
 export interface DeviceOption {
@@ -10,21 +48,9 @@ export interface DeviceOption {
   variations: string[];
 }
 
-export const DEVICE_OPTIONS: DeviceOption[] = [
-  {
-    name: "16 Pro Max",
-    variations: ["Blue Titanium", "Natural Titanium", "White Titanium", "Black Titanium"],
-  },
-  {
-    name: "16 Pro",
-    variations: ["Blue Titanium", "Natural Titanium", "White Titanium", "Black Titanium"],
-  },
-  {
-    name: "16 Plus",
-    variations: ["Black", "White", "Pink", "Teal", "Ultramarine"],
-  },
-  {
-    name: "16",
-    variations: ["Black", "White", "Pink", "Teal", "Ultramarine"],
-  },
-];
+export const CATEGORY_LABELS: Record<string, string> = {
+  "android-phone": "Android Phones",
+  "android-tablet": "Android Tablets",
+  "iOS": "iPhones",
+  "iPad": "iPads",
+};
