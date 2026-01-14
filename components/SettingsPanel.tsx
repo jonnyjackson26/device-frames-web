@@ -73,7 +73,7 @@ export function SettingsPanel({
 
       {/* Device Selector */}
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label
               htmlFor={categoryId}
@@ -161,11 +161,10 @@ export function SettingsPanel({
         </label>
         <input
           id="background-color"
-          type="text"
-          value={backgroundColor}
+          type="color"
+          value={backgroundColor || "#FFFFFF"}
           onChange={(e) => onBackgroundColorChange(e.target.value)}
-          placeholder="#FFFFFF or transparent"
-          className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
+          className="w-full h-10 px-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
         />
       </div>
 
@@ -176,30 +175,21 @@ export function SettingsPanel({
       )}
 
       <div className="flex gap-2 pt-4">
-        {hasFramedImage ? (
-          <>
-            <button
-              onClick={onDownload}
-              className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors text-sm"
-            >
-              Download
-            </button>
-            <button
-              onClick={onNewImage}
-              className="flex-1 py-3 px-4 bg-zinc-600 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors text-sm"
-            >
-              New Image
-            </button>
-          </>
-        ) : (
+        {hasFramedImage && (
           <button
-            type="submit"
-            disabled={!hasFile || !selectedCategory || !selectedDevice || !selectedVariation || isProcessing}
-            className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
+            onClick={onNewImage}
+            className="flex-1 py-3 px-4 bg-zinc-600 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors text-sm cursor-pointer"
           >
-            {isProcessing ? "Processing..." : "Generate Frame"}
+            Clear
           </button>
         )}
+        <button
+          type="submit"
+          disabled={!hasFramedImage}
+          className="flex-1 py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white font-medium rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+        >
+          {isProcessing ? "Processing..." : "Download"}
+        </button>
       </div>
     </div>
   );
