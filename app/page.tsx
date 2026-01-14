@@ -150,7 +150,7 @@ export default function Home() {
 
   const frameImageUrl = selectedFrame?.frame_png
     ? `https://device-frames.fly.dev${selectedFrame.frame_png}`
-    : null;
+    : "/placeholder_frame.png";
 
   const frameSize = selectedFrame?.frame_size;
   const screen = selectedFrame?.template.screen;
