@@ -49,6 +49,37 @@ export default function Home() {
     if (nextVariation !== deviceVariation) setDeviceVariation(nextVariation);
   }, [deviceList, category, deviceType, deviceVariation]);
 
+  // Auto-apply frame when a file is selected
+  useEffect(() => {
+    if (!selectedFile || !category || !deviceType || !deviceVariation || isProcessing) {
+      return;
+    }
+
+    const applyFrame = async () => {
+      setIsProcessing(true);
+      setError(null);
+
+      try {
+        const blob = await applyDeviceFrame({
+          file: selectedFile,
+          device_type: deviceType,
+          device_variation: deviceVariation,
+          background_color: backgroundColor || undefined,
+          category,
+        });
+
+        const url = URL.createObjectURL(blob);
+        setFramedImageUrl(url);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to process image");
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    applyFrame();
+  }, [selectedFile, category, deviceType, deviceVariation, backgroundColor]);
+
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setFramedImageUrl(null);
@@ -57,31 +88,6 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedFile || !category || !deviceType || !deviceVariation) {
-      setError("Please fill in all required fields");
-      return;
-    }
-
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      const blob = await applyDeviceFrame({
-        file: selectedFile,
-        device_type: deviceType,
-        device_variation: deviceVariation,
-        background_color: backgroundColor || undefined,
-        category,
-      });
-
-      const url = URL.createObjectURL(blob);
-      setFramedImageUrl(url);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process image");
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   const handleDownload = () => {
@@ -229,37 +235,81 @@ export default function Home() {
               disabled={!selectedFile || !category || !deviceType || !deviceVariation || isProcessing}
               className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isProcessing ? "Processing..." : "Apply Frame"}
+              {isProcessing ? "Processing..." : "Download"}
             </button>
           </form>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
-                Your Framed Image
-              </h2>
-              <div className="flex justify-center bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
-                <img
-                  src={framedImageUrl}
-                  alt="Framed screenshot"
-                  className="max-w-full h-auto rounded"
-                />
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
+                  Your Framed Image
+                </h2>
+                <div className="flex justify-center bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                  <img
+                    src={framedImageUrl}
+                    alt="Framed screenshot"
+                    className="max-w-full h-auto rounded"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={handleDownload}
-                className="flex-1 py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Download Image
-              </button>
-              <button
-                onClick={handleReset}
-                className="flex-1 py-3 px-6 bg-zinc-600 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Create Another
-              </button>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                    Device Settings
+                  </h3>
+                  <DeviceSelector
+                    deviceList={deviceList}
+                    selectedCategory={category}
+                    selectedDevice={deviceType}
+                    selectedVariation={deviceVariation}
+                    onCategoryChange={setCategory}
+                    onDeviceChange={setDeviceType}
+                    onVariationChange={setDeviceVariation}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="background-color-result"
+                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                  >
+                    Background Color
+                  </label>
+                  <input
+                    id="background-color-result"
+                    type="text"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    placeholder="#FFFFFF or transparent"
+                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+
+                {error && (
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-800 dark:text-red-200">
+                      {error}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-4">
+                  <button
+                    onClick={handleDownload}
+                    className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors text-sm"
+                  >
+                    Download
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="flex-1 py-3 px-4 bg-zinc-600 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors text-sm"
+                  >
+                    New Image
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

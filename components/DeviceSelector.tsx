@@ -137,54 +137,6 @@ export function DeviceSelector({
           </select>
         </div>
       </div>
-
-      {framePreviewUrl && showFramePreview && (
-        <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                Device Frame Preview
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                {selectedDevice} - {selectedVariation}
-                {frameSize && (
-                  <span className="ml-2">
-                    ({frameSize.width} × {frameSize.height}px)
-                  </span>
-                )}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowFramePreview(false)}
-              className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-            >
-              Hide preview
-            </button>
-          </div>
-          <div className="flex justify-center bg-white dark:bg-zinc-900 rounded-lg p-4">
-            <img
-              src={framePreviewUrl}
-              alt={`${selectedDevice} ${selectedVariation} frame`}
-              className="max-h-64 w-auto object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {!showFramePreview && framePreviewUrl && (
-        <button
-          type="button"
-          onClick={() => setShowFramePreview(true)}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          Show frame preview
-        </button>
-      )}
     </div>
   );
 }
