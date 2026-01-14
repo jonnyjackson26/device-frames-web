@@ -2,20 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE_URL = "https://device-frames.fly.dev";
 
-export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function POST(_request: NextRequest) {
   try {
-    const formData = await request.formData();
+    const formData = await _request.formData();
     
     // Forward the request to the external API
     const response = await fetch(`${API_BASE_URL}/apply_frame`, {
       method: "POST",
+      cache: "no-store",
       body: formData,
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const contentType = response.headers.get("content-type");
+      const error = contentType?.includes("application/json")
+        ? await response.json()
+        : null;
       return NextResponse.json(
-        { error: error.detail || "Failed to apply device frame" },
+        { error: error?.detail || "Failed to apply device frame" },
         { status: response.status }
       );
     }

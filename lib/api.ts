@@ -2,7 +2,7 @@ import { FrameOptions, DeviceListResponse } from "./types";
 
 export async function listDevices(): Promise<DeviceListResponse> {
   // Use local API route to avoid CORS issues
-  const response = await fetch("/api/list-devices");
+  const response = await fetch("/api/list-devices", { cache: "no-store" });
   
   if (!response.ok) {
     throw new Error("Failed to fetch device list");
@@ -18,6 +18,9 @@ export async function applyDeviceFrame(
   formData.append("file", options.file);
   formData.append("device_type", options.device_type);
   formData.append("device_variation", options.device_variation);
+  if (options.category) {
+    formData.append("category", options.category);
+  }
   
   if (options.background_color) {
     formData.append("background_color", options.background_color);
@@ -26,6 +29,7 @@ export async function applyDeviceFrame(
   // Use local API route to avoid CORS issues
   const response = await fetch("/api/apply-frame", {
     method: "POST",
+    cache: "no-store",
     body: formData,
   });
 

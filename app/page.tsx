@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FileUpload } from "@/components/FileUpload";
-import { DeviceSelector } from "@/components/DeviceSelector";
+import { useEffect, useRef, useState } from "react";
+import { Phone } from "@/components/Phone";
+import { SettingsPanel } from "@/components/SettingsPanel";
 import { applyDeviceFrame, listDevices } from "@/lib/api";
 import { DeviceListResponse } from "@/lib/types";
 
@@ -15,16 +15,28 @@ export default function Home() {
   const [backgroundColor, setBackgroundColor] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [framedImageUrl, setFramedImageUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   // Fetch device list on mount
   useEffect(() => {
+    let isMounted = true;
+
     listDevices()
-      .then(setDeviceList)
+      .then((data) => {
+        if (!isMounted) return;
+        setDeviceList(data);
+      })
       .catch((err) => {
+        if (!isMounted) return;
         console.error("Failed to load device list:", err);
         setError("Failed to load device list. Please refresh the page.");
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Ensure a selection is always present once the device list is loaded
@@ -51,14 +63,21 @@ export default function Home() {
 
   // Auto-apply frame when a file is selected
   useEffect(() => {
-    if (!selectedFile || !category || !deviceType || !deviceVariation || isProcessing) {
+    if (!selectedFile || !category || !deviceType || !deviceVariation) {
       return;
     }
 
-    const applyFrame = async () => {
-      setIsProcessing(true);
-      setError(null);
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
 
+    setIsProcessing(true);
+    setError(null);
+    setFramedImageUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+
+    const applyFrame = async () => {
       try {
         const blob = await applyDeviceFrame({
           file: selectedFile,
@@ -69,25 +88,45 @@ export default function Home() {
         });
 
         const url = URL.createObjectURL(blob);
+
+        if (requestId !== requestIdRef.current) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
         setFramedImageUrl(url);
       } catch (err) {
+        if (requestId !== requestIdRef.current) return;
         setError(err instanceof Error ? err.message : "Failed to process image");
       } finally {
-        setIsProcessing(false);
+        if (requestId === requestIdRef.current) {
+          setIsProcessing(false);
+        }
       }
     };
 
     applyFrame();
   }, [selectedFile, category, deviceType, deviceVariation, backgroundColor]);
 
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  useEffect(() => () => {
+    if (framedImageUrl) URL.revokeObjectURL(framedImageUrl);
+  }, [framedImageUrl]);
+
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
-    setFramedImageUrl(null);
+    setPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setFramedImageUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
     setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
   };
 
   const handleDownload = () => {
@@ -100,12 +139,17 @@ export default function Home() {
   };
 
   const handleReset = () => {
+    requestIdRef.current += 1;
+    setIsProcessing(false);
     setSelectedFile(null);
-    setCategory("");
-    setDeviceType("");
-    setDeviceVariation("");
-    setBackgroundColor("");
-    setFramedImageUrl(null);
+    setPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setFramedImageUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
     setError(null);
   };
 
@@ -121,65 +165,9 @@ export default function Home() {
   const frameSize = selectedFrame?.frame_size;
   const screen = selectedFrame?.template.screen;
 
-  const renderUploadArea = () => {
-    if (frameImageUrl && frameSize && screen) {
-      const width = frameSize.width;
-      const height = frameSize.height;
-
-      return (
-        <div className="relative w-full max-w-3xl mx-auto">
-          <div
-            className="relative w-full"
-            style={{ aspectRatio: `${width}/${height}` }}
-          >
-            <img
-              src={frameImageUrl}
-              alt={`${deviceType} ${deviceVariation} frame`}
-              className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
-            />
-
-            <div className="absolute inset-0">
-              <div
-                className="absolute overflow-hidden"
-                style={{
-                  top: `${(screen.y / height) * 100}%`,
-                  left: `${(screen.x / width) * 100}%`,
-                  width: `${(screen.width / width) * 100}%`,
-                  height: `${(screen.height / height) * 100}%`,
-                }}
-              >
-                {selectedFile ? (
-                  <img
-                    src={URL.createObjectURL(selectedFile)}
-                    alt="Uploaded screenshot"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <FileUpload
-                    onFileSelect={handleFileSelect}
-                    selectedFile={selectedFile}
-                    frameMode
-                    className="h-full w-full"
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <FileUpload
-        onFileSelect={handleFileSelect}
-        selectedFile={selectedFile}
-      />
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans py-12 px-4">
-      <main className="max-w-4xl mx-auto">
+      <main className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-3">
             Device Frame Studio
@@ -189,130 +177,65 @@ export default function Home() {
           </p>
         </div>
 
-        {!framedImageUrl ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 space-y-6">
-              {renderUploadArea()}
-
-              <DeviceSelector
-                deviceList={deviceList}
-                selectedCategory={category}
-                selectedDevice={deviceType}
-                selectedVariation={deviceVariation}
-                onCategoryChange={setCategory}
-                onDeviceChange={setDeviceType}
-                onVariationChange={setDeviceVariation}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Phone Panel */}
+          <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6">
+            <div
+              className="relative w-full"
+              style={{
+                aspectRatio: frameSize ? `${frameSize.width}/${frameSize.height}` : "9/16",
+              }}
+            >
+              <Phone
+                frameImageUrl={frameImageUrl}
+                onFileSelect={handleFileSelect}
+                selectedFile={selectedFile}
               />
 
-              <div>
-                <label
-                  htmlFor="background-color"
-                  className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
-                >
-                  Background Color (optional)
-                </label>
-                <input
-                  id="background-color"
-                  type="text"
-                  value={backgroundColor}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
-                  placeholder="#FFFFFF or transparent"
-                  className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
-                />
-              </div>
-
-              {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    {error}
-                  </p>
+              {/* Screen overlay for preview */}
+              {frameImageUrl && frameSize && screen && previewUrl && (
+                <div className="absolute inset-0">
+                  <div
+                    className="absolute overflow-hidden"
+                    style={{
+                      top: `${(screen.y / frameSize.height) * 100}%`,
+                      left: `${(screen.x / frameSize.width) * 100}%`,
+                      width: `${(screen.width / frameSize.width) * 100}%`,
+                      height: `${(screen.height / frameSize.height) * 100}%`,
+                    }}
+                  >
+                    <img
+                      src={previewUrl}
+                      alt="Uploaded screenshot"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
               )}
             </div>
-
-            <button
-              type="submit"
-              disabled={!selectedFile || !category || !deviceType || !deviceVariation || isProcessing}
-              className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-300 dark:disabled:bg-zinc-700 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
-            >
-              {isProcessing ? "Processing..." : "Download"}
-            </button>
-          </form>
-        ) : (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
-                  Your Framed Image
-                </h2>
-                <div className="flex justify-center bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
-                  <img
-                    src={framedImageUrl}
-                    alt="Framed screenshot"
-                    className="max-w-full h-auto rounded"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                    Device Settings
-                  </h3>
-                  <DeviceSelector
-                    deviceList={deviceList}
-                    selectedCategory={category}
-                    selectedDevice={deviceType}
-                    selectedVariation={deviceVariation}
-                    onCategoryChange={setCategory}
-                    onDeviceChange={setDeviceType}
-                    onVariationChange={setDeviceVariation}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="background-color-result"
-                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
-                  >
-                    Background Color
-                  </label>
-                  <input
-                    id="background-color-result"
-                    type="text"
-                    value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                    placeholder="#FFFFFF or transparent"
-                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
-                  />
-                </div>
-
-                {error && (
-                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-sm text-red-800 dark:text-red-200">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <button
-                    onClick={handleDownload}
-                    className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors text-sm"
-                  >
-                    Download
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="flex-1 py-3 px-4 bg-zinc-600 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors text-sm"
-                  >
-                    New Image
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
-        )}
+
+          {/* Settings Panel */}
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6">
+            <SettingsPanel
+              deviceList={deviceList}
+              selectedCategory={category}
+              selectedDevice={deviceType}
+              selectedVariation={deviceVariation}
+              onCategoryChange={setCategory}
+              onDeviceChange={setDeviceType}
+              onVariationChange={setDeviceVariation}
+              backgroundColor={backgroundColor}
+              onBackgroundColorChange={setBackgroundColor}
+              onDownload={handleDownload}
+              onNewImage={handleReset}
+              isProcessing={isProcessing}
+              error={error}
+              hasFramedImage={framedImageUrl !== null}
+              hasFile={selectedFile !== null}
+            />
+          </div>
+        </div>
       </main>
     </div>
   );
