@@ -27,6 +27,28 @@ export default function Home() {
       });
   }, []);
 
+  // Ensure a selection is always present once the device list is loaded
+  useEffect(() => {
+    if (!deviceList) return;
+
+    const categories = Object.keys(deviceList);
+    if (!categories.length) return;
+
+    const nextCategory = category && categories.includes(category) ? category : categories[0];
+    const devices = Object.keys(deviceList[nextCategory] || {});
+    const nextDevice = deviceType && devices.includes(deviceType) ? deviceType : devices[0] || "";
+    const variations = nextDevice
+      ? Object.keys(deviceList[nextCategory]?.[nextDevice] || {})
+      : [];
+    const nextVariation = deviceVariation && variations.includes(deviceVariation)
+      ? deviceVariation
+      : variations[0] || "";
+
+    if (nextCategory !== category) setCategory(nextCategory);
+    if (nextDevice !== deviceType) setDeviceType(nextDevice);
+    if (nextVariation !== deviceVariation) setDeviceVariation(nextVariation);
+  }, [deviceList, category, deviceType, deviceVariation]);
+
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setFramedImageUrl(null);
@@ -81,9 +103,77 @@ export default function Home() {
     setError(null);
   };
 
+  const selectedFrame =
+    category && deviceType && deviceVariation && deviceList
+      ? deviceList[category]?.[deviceType]?.[deviceVariation]
+      : undefined;
+
+  const frameImageUrl = selectedFrame?.frame_png
+    ? `https://device-frames.fly.dev${selectedFrame.frame_png}`
+    : null;
+
+  const frameSize = selectedFrame?.frame_size;
+  const screen = selectedFrame?.template.screen;
+
+  const renderUploadArea = () => {
+    if (frameImageUrl && frameSize && screen) {
+      const width = frameSize.width;
+      const height = frameSize.height;
+
+      return (
+        <div className="relative w-full max-w-3xl mx-auto">
+          <div
+            className="relative w-full"
+            style={{ aspectRatio: `${width}/${height}` }}
+          >
+            <img
+              src={frameImageUrl}
+              alt={`${deviceType} ${deviceVariation} frame`}
+              className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+            />
+
+            <div className="absolute inset-0">
+              <div
+                className="absolute overflow-hidden"
+                style={{
+                  top: `${(screen.y / height) * 100}%`,
+                  left: `${(screen.x / width) * 100}%`,
+                  width: `${(screen.width / width) * 100}%`,
+                  height: `${(screen.height / height) * 100}%`,
+                }}
+              >
+                {selectedFile ? (
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    alt="Uploaded screenshot"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FileUpload
+                    onFileSelect={handleFileSelect}
+                    selectedFile={selectedFile}
+                    frameMode
+                    className="h-full w-full"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <FileUpload
+        onFileSelect={handleFileSelect}
+        selectedFile={selectedFile}
+      />
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans py-12 px-4">
-      <main className="max-w-2xl mx-auto">
+      <main className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-3">
             Device Frame Studio
@@ -96,10 +186,7 @@ export default function Home() {
         {!framedImageUrl ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 space-y-6">
-              <FileUpload
-                onFileSelect={handleFileSelect}
-                selectedFile={selectedFile}
-              />
+              {renderUploadArea()}
 
               <DeviceSelector
                 deviceList={deviceList}

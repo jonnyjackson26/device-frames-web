@@ -42,6 +42,12 @@ export function DeviceSelector({
     ? Object.keys(deviceList[selectedCategory]?.[selectedDevice] || {})
     : [];
 
+  const firstDeviceForCategory = (category: string) =>
+    Object.keys(deviceList[category] || {})[0] || "";
+
+  const firstVariationForDevice = (category: string, device: string) =>
+    Object.keys(deviceList[category]?.[device] || {})[0] || "";
+
   const framePreviewUrl = selectedCategory && selectedDevice && selectedVariation
     ? `https://device-frames.fly.dev${deviceList[selectedCategory]?.[selectedDevice]?.[selectedVariation]?.frame_png || ""}`
     : null;
@@ -64,14 +70,15 @@ export function DeviceSelector({
             id="device-category"
             value={selectedCategory}
             onChange={(e) => {
-              onCategoryChange(e.target.value);
-              onDeviceChange("");
-              onVariationChange("");
+              const nextCategory = e.target.value;
+              onCategoryChange(nextCategory);
+              const nextDevice = firstDeviceForCategory(nextCategory);
+              onDeviceChange(nextDevice);
+              onVariationChange(firstVariationForDevice(nextCategory, nextDevice));
             }}
             className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
             required
           >
-            <option value="">Select category</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {CATEGORY_LABELS[category] || category}
@@ -91,14 +98,14 @@ export function DeviceSelector({
             id="device-type"
             value={selectedDevice}
             onChange={(e) => {
-              onDeviceChange(e.target.value);
-              onVariationChange("");
+              const nextDevice = e.target.value;
+              onDeviceChange(nextDevice);
+              onVariationChange(firstVariationForDevice(selectedCategory, nextDevice));
             }}
             className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
             required
             disabled={!selectedCategory}
           >
-            <option value="">Select device</option>
             {devices.map((device) => (
               <option key={device} value={device}>
                 {device}
@@ -122,7 +129,6 @@ export function DeviceSelector({
             required
             disabled={!selectedDevice}
           >
-            <option value="">Select variant</option>
             {variations.map((variation) => (
               <option key={variation} value={variation}>
                 {variation}

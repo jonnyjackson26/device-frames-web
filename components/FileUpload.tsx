@@ -5,9 +5,11 @@ import { useCallback } from "react";
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
   selectedFile: File | null;
+  className?: string;
+  frameMode?: boolean;
 }
 
-export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
+export function FileUpload({ onFileSelect, selectedFile, className, frameMode }: FileUploadProps) {
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -33,11 +35,15 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
     [onFileSelect]
   );
 
+  const baseClasses = frameMode
+    ? "relative flex flex-col items-center justify-center w-full h-full border-2 border-blue-200 dark:border-blue-500/60 rounded-lg bg-white/70 dark:bg-zinc-900/60 backdrop-blur-sm"
+    : "relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors";
+
   return (
     <div
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      className="relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+      className={`${baseClasses} cursor-pointer ${className ?? ""}`}
     >
       <input
         type="file"
