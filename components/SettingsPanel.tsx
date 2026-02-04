@@ -227,6 +227,10 @@ export function SettingsPanel({
         <a href="/docs" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
           API
         </a>
+        <span>·</span>
+        <a href="/frame-media" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+          Download Media
+        </a>
       </div>
     </div>
   );
