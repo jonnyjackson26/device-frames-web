@@ -1,18 +1,10 @@
-import Link from "next/link";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function About() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans p-4">
       <main className="max-w-2xl mx-auto py-12">
-        <Link 
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors mb-8"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Home
-        </Link>
+        <BackButton />
 
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-8 space-y-6">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">

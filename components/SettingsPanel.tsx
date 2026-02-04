@@ -229,7 +229,7 @@ export function SettingsPanel({
         </a>
         <span>·</span>
         <a href="/frame-media" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
-          Download Media
+          View/Download PNGs
         </a>
       </div>
     </div>

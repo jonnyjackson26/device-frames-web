@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import FrameGallery from '@/components/FrameGallery';
+import { BackButton } from '@/components/ui/BackButton';
 
 interface FrameTemplate {
   frame: string;
@@ -53,6 +54,7 @@ export default function FrameMediaPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       <div className="container mx-auto px-4 py-12">
+        <BackButton href="/" label="Back to Home" />
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-slate-900 mb-4">
             Device Frame Gallery
@@ -61,12 +63,6 @@ export default function FrameMediaPage() {
             Browse and download device frame PNGs, masks, and templates
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <a 
-              href="/" 
-              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
-            >
-              Apply Frames to Screenshots
-            </a>
             <a 
               href="https://github.com/jonnyjackson26/device-frames-media" 
               target="_blank" 
