@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://device-frames.fly.dev';
+const API_BASE_URL = process.env.API_BASE_URL || 'https://device-frames.fly.dev';
 
 interface FrameTemplate {
   frame: string;
@@ -69,8 +69,8 @@ export async function GET() {
             category: category.replace(/-/g, ' '),
             device: deviceName,
             variant: variantName,
-            framePath: `${API_BASE_URL}${variantData.frame_png}`,
-            maskPath: `${API_BASE_URL}${basePath}/mask.png`,
+            framePath: `/api/proxy-image?path=${encodeURIComponent(variantData.frame_png)}`,
+            maskPath: `/api/proxy-image?path=${encodeURIComponent(basePath + '/mask.png')}`,
             thumbnail: `${API_BASE_URL}${variantData.frame_png}`,
             template: variantData.template,
           });
