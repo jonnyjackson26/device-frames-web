@@ -2,7 +2,7 @@ import { FrameOptions, DeviceListResponse } from "./types";
 
 export async function listDevices(): Promise<DeviceListResponse> {
   // Use local API route to avoid CORS issues
-  const response = await fetch("/api/list-devices", { cache: "no-store" });
+  const response = await fetch("/api/list-devices", { cache: "force-cache" });
   
   if (!response.ok) {
     throw new Error("Failed to fetch device list");

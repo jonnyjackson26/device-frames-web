@@ -6,9 +6,13 @@ import { SettingsPanel } from "@/components/SettingsPanel";
 import { applyDeviceFrame, listDevices } from "@/lib/api";
 import { DeviceListResponse } from "@/lib/types";
 
-const DEFAULT_CATEGORY = process.env.NEXT_PUBLIC_DEFAULT_CATEGORY?.trim() ?? "";
-const DEFAULT_DEVICE = process.env.NEXT_PUBLIC_DEFAULT_DEVICE?.trim() ?? "";
-const DEFAULT_VARIATION = process.env.NEXT_PUBLIC_DEFAULT_VARIATION?.trim() ?? "";
+const FALLBACK_CATEGORY = "iOS";
+const FALLBACK_DEVICE = "iPhone 17 Pro";
+const FALLBACK_VARIATION = "Cosmic Orange";
+
+const DEFAULT_CATEGORY = process.env.NEXT_PUBLIC_DEFAULT_CATEGORY?.trim() || FALLBACK_CATEGORY;
+const DEFAULT_DEVICE = process.env.NEXT_PUBLIC_DEFAULT_DEVICE?.trim() || FALLBACK_DEVICE;
+const DEFAULT_VARIATION = process.env.NEXT_PUBLIC_DEFAULT_VARIATION?.trim() || FALLBACK_VARIATION;
 
 export default function Home() {
   const [deviceList, setDeviceList] = useState<DeviceListResponse | null>(null);
