@@ -6,17 +6,22 @@ import { SettingsPanel } from "@/components/SettingsPanel";
 import { applyDeviceFrame, listDevices } from "@/lib/api";
 import { DeviceListResponse } from "@/lib/types";
 
+const DEFAULT_CATEGORY = process.env.NEXT_PUBLIC_DEFAULT_CATEGORY?.trim() ?? "";
+const DEFAULT_DEVICE = process.env.NEXT_PUBLIC_DEFAULT_DEVICE?.trim() ?? "";
+const DEFAULT_VARIATION = process.env.NEXT_PUBLIC_DEFAULT_VARIATION?.trim() ?? "";
+
 export default function Home() {
   const [deviceList, setDeviceList] = useState<DeviceListResponse | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [category, setCategory] = useState("");
-  const [deviceType, setDeviceType] = useState("");
-  const [deviceVariation, setDeviceVariation] = useState("");
+  const [category, setCategory] = useState(DEFAULT_CATEGORY);
+  const [deviceType, setDeviceType] = useState(DEFAULT_DEVICE);
+  const [deviceVariation, setDeviceVariation] = useState(DEFAULT_VARIATION);
   const [backgroundColor, setBackgroundColor] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [framedImageUrl, setFramedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const defaultsAppliedRef = useRef(false);
 
   // Fetch device list on mount
   useEffect(() => {
@@ -45,19 +50,43 @@ export default function Home() {
     const categories = Object.keys(deviceList);
     if (!categories.length) return;
 
-    const nextCategory = category && categories.includes(category) ? category : categories[0];
+    const shouldUseDefaults = !defaultsAppliedRef.current;
+    const preferredCategory =
+      shouldUseDefaults && DEFAULT_CATEGORY && categories.includes(DEFAULT_CATEGORY)
+        ? DEFAULT_CATEGORY
+        : category;
+    const nextCategory =
+      preferredCategory && categories.includes(preferredCategory)
+        ? preferredCategory
+        : categories[0];
     const devices = Object.keys(deviceList[nextCategory] || {});
-    const nextDevice = deviceType && devices.includes(deviceType) ? deviceType : devices[0] || "";
+    const preferredDevice =
+      shouldUseDefaults && DEFAULT_DEVICE && devices.includes(DEFAULT_DEVICE) &&
+      (!DEFAULT_CATEGORY || nextCategory === DEFAULT_CATEGORY)
+        ? DEFAULT_DEVICE
+        : deviceType;
+    const nextDevice =
+      preferredDevice && devices.includes(preferredDevice)
+        ? preferredDevice
+        : devices[0] || "";
     const variations = nextDevice
       ? Object.keys(deviceList[nextCategory]?.[nextDevice] || {})
       : [];
-    const nextVariation = deviceVariation && variations.includes(deviceVariation)
-      ? deviceVariation
-      : variations[0] || "";
+    const preferredVariation =
+      shouldUseDefaults && DEFAULT_VARIATION && variations.includes(DEFAULT_VARIATION) &&
+      (!DEFAULT_DEVICE || nextDevice === DEFAULT_DEVICE)
+        ? DEFAULT_VARIATION
+        : deviceVariation;
+    const nextVariation =
+      preferredVariation && variations.includes(preferredVariation)
+        ? preferredVariation
+        : variations[0] || "";
 
     if (nextCategory !== category) setCategory(nextCategory);
     if (nextDevice !== deviceType) setDeviceType(nextDevice);
     if (nextVariation !== deviceVariation) setDeviceVariation(nextVariation);
+
+    defaultsAppliedRef.current = true;
   }, [deviceList, category, deviceType, deviceVariation]);
 
   // Auto-apply frame when a file is selected

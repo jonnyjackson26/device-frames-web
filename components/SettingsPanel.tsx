@@ -40,29 +40,28 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
-  if (!deviceList) {
-    return (
-      <div className="space-y-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-10 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
-          <div className="h-10 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
-          <div className="h-10 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  const categories = Object.keys(deviceList);
-  const devices = selectedCategory ? Object.keys(deviceList[selectedCategory] || {}) : [];
-  const variations = selectedCategory && selectedDevice
+  const isLoading = !deviceList;
+  const categories = deviceList
+    ? Object.keys(deviceList)
+    : selectedCategory
+      ? [selectedCategory]
+      : [];
+  const devices = deviceList && selectedCategory
+    ? Object.keys(deviceList[selectedCategory] || {})
+    : selectedDevice
+      ? [selectedDevice]
+      : [];
+  const variations = deviceList && selectedCategory && selectedDevice
     ? Object.keys(deviceList[selectedCategory]?.[selectedDevice] || {})
-    : [];
+    : selectedVariation
+      ? [selectedVariation]
+      : [];
 
   const firstDeviceForCategory = (category: string) =>
-    Object.keys(deviceList[category] || {})[0] || "";
+    deviceList ? Object.keys(deviceList[category] || {})[0] || "" : selectedDevice;
 
   const firstVariationForDevice = (category: string, device: string) =>
-    Object.keys(deviceList[category]?.[device] || {})[0] || "";
+    deviceList ? Object.keys(deviceList[category]?.[device] || {})[0] || "" : selectedVariation;
 
   const categoryId = "settings-category";
   const deviceId = "settings-type";
@@ -96,12 +95,17 @@ export function SettingsPanel({
               }}
               className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100"
               required
+              disabled={isLoading}
             >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {CATEGORY_LABELS[category] || category}
-                </option>
-              ))}
+              {categories.length ? (
+                categories.map((category) => (
+                  <option key={category} value={category}>
+                    {CATEGORY_LABELS[category] || category}
+                  </option>
+                ))
+              ) : (
+                <option value="">Loading...</option>
+              )}
             </select>
           </div>
 
@@ -121,13 +125,17 @@ export function SettingsPanel({
                 onVariationChange(firstVariationForDevice(selectedCategory, nextDevice));
               }}
               className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
-              disabled={!selectedCategory}
+              disabled={isLoading || !selectedCategory}
             >
-              {devices.map((device) => (
-                <option key={device} value={device}>
-                  {device}
-                </option>
-              ))}
+              {devices.length ? (
+                devices.map((device) => (
+                  <option key={device} value={device}>
+                    {device}
+                  </option>
+                ))
+              ) : (
+                <option value="">Loading...</option>
+              )}
             </select>
           </div>
 
@@ -143,13 +151,17 @@ export function SettingsPanel({
               value={selectedVariation}
               onChange={(e) => onVariationChange(e.target.value)}
               className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
-              disabled={!selectedDevice}
+              disabled={isLoading || !selectedDevice}
             >
-              {variations.map((variation) => (
-                <option key={variation} value={variation}>
-                  {variation}
-                </option>
-              ))}
+              {variations.length ? (
+                variations.map((variation) => (
+                  <option key={variation} value={variation}>
+                    {variation}
+                  </option>
+                ))
+              ) : (
+                <option value="">Loading...</option>
+              )}
             </select>
           </div>
         </div>
