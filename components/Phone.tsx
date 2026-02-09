@@ -59,6 +59,9 @@ export function Phone({ framedImageUrl, isLoading, onFileSelect, emptyFrameUrl, 
               src={emptyFrameUrl}
               alt="Device frame"
               className="w-full h-full object-contain pointer-events-none select-none"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
             />
           )}
           
