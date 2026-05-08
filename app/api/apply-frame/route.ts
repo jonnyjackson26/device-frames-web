@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const API_BASE_URL = process.env.API_BASE_URL || "https://device-frames.fly.dev";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export const dynamic = "force-dynamic";
 

@@ -22,7 +22,7 @@ export default function Docs() {
           {/* Base URL */}
           <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
             <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Base URL</div>
-            <code className="text-sm text-blue-600 dark:text-blue-400">https://device-frames.fly.dev</code>
+            <code className="text-sm text-blue-600 dark:text-blue-400">https://device-frames-api.fly.dev</code>
           </div>
 
           {/* Endpoints */}
@@ -63,21 +63,21 @@ export default function Docs() {
 
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">device_type</code>
+                          <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">device</code>
                           <span className="text-xs text-red-600 dark:text-red-400">required</span>
                         </div>
                         <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Device type (e.g., <code className="text-xs bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">&apos;16 Pro Max&apos;</code>)
+                          Device identifier (e.g., <code className="text-xs bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">&apos;pixel-8-pro&apos;</code>)
                         </div>
                       </div>
 
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">device_variation</code>
+                          <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">variation</code>
                           <span className="text-xs text-red-600 dark:text-red-400">required</span>
                         </div>
                         <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Device variation (e.g., <code className="text-xs bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">&apos;Blue Titanium&apos;</code>)
+                          Variation (e.g., <code className="text-xs bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">&apos;black&apos;</code>)
                         </div>
                       </div>
 
@@ -87,17 +87,7 @@ export default function Docs() {
                           <span className="text-xs text-zinc-500 dark:text-zinc-400">optional</span>
                         </div>
                         <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Device category (e.g., <code className="text-xs bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">&apos;iOS&apos;</code>)
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">background_color</code>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">optional</span>
-                        </div>
-                        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Background color as hex (#RRGGBB or #RRGGBBAA). Default: transparent
+                          Category filter (e.g., <code className="text-xs bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">&apos;android-phone&apos;</code>)
                         </div>
                       </div>
                     </div>
@@ -166,18 +156,17 @@ export default function Docs() {
                   <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
                     <pre className="text-xs text-zinc-600 dark:text-zinc-400 overflow-x-auto">
 {`{
-  "category": {
-    "device_type": {
-      "variation": {
-        "frame_png": "path/to/frame.png",
-        "template": {...template.json content...},
-        "frame_size": {
-          "width": 1234,
-          "height": 5678
-        }
-      }
+  "count": 143,
+  "devices": [
+    {
+      "category": "android-phone",
+      "device": "pixel-8-pro",
+      "variation": "black",
+      "frame_size": { "width": 1621, "height": 3135 },
+      "screen": { "x": 183, "y": 169, "width": 1255, "height": 2792 },
+      "hex_color": "#464749"
     }
-  }
+  ]
 }`}
                     </pre>
                   </div>
@@ -221,7 +210,7 @@ export default function Docs() {
               OpenAPI Specification
             </h3>
             <a
-              href="https://device-frames.fly.dev/openapi.json"
+              href="https://device-frames-api.fly.dev/openapi.json"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"

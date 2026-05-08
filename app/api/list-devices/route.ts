@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const API_BASE_URL = "https://device-frames.fly.dev";
+import { API_BASE_URL } from "@/lib/api-config";
 
 const LIST_DEVICES_REVALIDATE_SECONDS = 60 * 60 * 6;
 
@@ -9,9 +8,7 @@ export async function GET(_request: NextRequest) {
     const response = await fetch(`${API_BASE_URL}/list_devices`, {
       method: "GET",
       next: { revalidate: LIST_DEVICES_REVALIDATE_SECONDS },
-      headers: {
-        Accept: "application/json",
-      },
+      headers: { Accept: "application/json" },
     });
 
     if (!response.ok) {

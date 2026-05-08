@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Phone } from "@/components/Phone";
 import { SettingsPanel } from "@/components/SettingsPanel";
-import { applyDeviceFrame, listDevices } from "@/lib/api";
-import { DeviceListResponse } from "@/lib/types";
+import { applyDeviceFrame, findTemplate, listDevices } from "@/lib/api";
+import { DeviceListResponse, FrameTemplate } from "@/lib/types";
 
-const FALLBACK_CATEGORY = "iOS";
-const FALLBACK_DEVICE = "iPhone 17 Pro";
-const FALLBACK_VARIATION = "Cosmic Orange";
+const FALLBACK_CATEGORY = "apple-iphone";
+const FALLBACK_DEVICE = "17-pro-max";
+const FALLBACK_VARIATION = "cosmic-orange";
 
 const DEFAULT_CATEGORY = process.env.NEXT_PUBLIC_DEFAULT_CATEGORY?.trim() || FALLBACK_CATEGORY;
 const DEFAULT_DEVICE = process.env.NEXT_PUBLIC_DEFAULT_DEVICE?.trim() || FALLBACK_DEVICE;
@@ -18,9 +18,9 @@ export default function Home() {
   const [deviceList, setDeviceList] = useState<DeviceListResponse | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [category, setCategory] = useState(DEFAULT_CATEGORY);
-  const [deviceType, setDeviceType] = useState(DEFAULT_DEVICE);
-  const [deviceVariation, setDeviceVariation] = useState(DEFAULT_VARIATION);
-  const [backgroundColor, setBackgroundColor] = useState("");
+  const [device, setDevice] = useState(DEFAULT_DEVICE);
+  const [variation, setVariation] = useState(DEFAULT_VARIATION);
+  const [template, setTemplate] = useState<FrameTemplate | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [framedImageUrl, setFramedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,10 +51,12 @@ export default function Home() {
   useEffect(() => {
     if (!deviceList) return;
 
-    const categories = Object.keys(deviceList);
-    if (!categories.length) return;
+    const devices = deviceList.devices;
+    if (!devices.length) return;
 
+    const categories = Array.from(new Set(devices.map((d) => d.category)));
     const shouldUseDefaults = !defaultsAppliedRef.current;
+
     const preferredCategory =
       shouldUseDefaults && DEFAULT_CATEGORY && categories.includes(DEFAULT_CATEGORY)
         ? DEFAULT_CATEGORY
@@ -63,39 +65,64 @@ export default function Home() {
       preferredCategory && categories.includes(preferredCategory)
         ? preferredCategory
         : categories[0];
-    const devices = Object.keys(deviceList[nextCategory] || {});
+
+    const devicesInCategory = Array.from(
+      new Set(devices.filter((d) => d.category === nextCategory).map((d) => d.device))
+    );
     const preferredDevice =
-      shouldUseDefaults && DEFAULT_DEVICE && devices.includes(DEFAULT_DEVICE) &&
+      shouldUseDefaults && DEFAULT_DEVICE && devicesInCategory.includes(DEFAULT_DEVICE) &&
       (!DEFAULT_CATEGORY || nextCategory === DEFAULT_CATEGORY)
         ? DEFAULT_DEVICE
-        : deviceType;
+        : device;
     const nextDevice =
-      preferredDevice && devices.includes(preferredDevice)
+      preferredDevice && devicesInCategory.includes(preferredDevice)
         ? preferredDevice
-        : devices[0] || "";
-    const variations = nextDevice
-      ? Object.keys(deviceList[nextCategory]?.[nextDevice] || {})
-      : [];
+        : devicesInCategory[0] || "";
+
+    const variationsForDevice = devices
+      .filter((d) => d.category === nextCategory && d.device === nextDevice)
+      .map((d) => d.variation);
     const preferredVariation =
-      shouldUseDefaults && DEFAULT_VARIATION && variations.includes(DEFAULT_VARIATION) &&
+      shouldUseDefaults && DEFAULT_VARIATION && variationsForDevice.includes(DEFAULT_VARIATION) &&
       (!DEFAULT_DEVICE || nextDevice === DEFAULT_DEVICE)
         ? DEFAULT_VARIATION
-        : deviceVariation;
+        : variation;
     const nextVariation =
-      preferredVariation && variations.includes(preferredVariation)
+      preferredVariation && variationsForDevice.includes(preferredVariation)
         ? preferredVariation
-        : variations[0] || "";
+        : variationsForDevice[0] || "";
 
     if (nextCategory !== category) setCategory(nextCategory);
-    if (nextDevice !== deviceType) setDeviceType(nextDevice);
-    if (nextVariation !== deviceVariation) setDeviceVariation(nextVariation);
+    if (nextDevice !== device) setDevice(nextDevice);
+    if (nextVariation !== variation) setVariation(nextVariation);
 
     defaultsAppliedRef.current = true;
-  }, [deviceList, category, deviceType, deviceVariation]);
+  }, [deviceList, category, device, variation]);
+
+  // Resolve the frame template (image URL + sizing) for the active selection
+  useEffect(() => {
+    if (!category || !device || !variation) return;
+    let isMounted = true;
+
+    findTemplate(device, variation, category)
+      .then((data) => {
+        if (!isMounted) return;
+        setTemplate(data.template_path);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error("Failed to load template:", err);
+        setTemplate(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [category, device, variation]);
 
   // Auto-apply frame when a file is selected
   useEffect(() => {
-    if (!selectedFile || !category || !deviceType || !deviceVariation) {
+    if (!selectedFile || !category || !device || !variation) {
       return;
     }
 
@@ -113,9 +140,8 @@ export default function Home() {
       try {
         const blob = await applyDeviceFrame({
           file: selectedFile,
-          device_type: deviceType,
-          device_variation: deviceVariation,
-          background_color: backgroundColor || undefined,
+          device,
+          variation,
           category,
         });
 
@@ -138,7 +164,7 @@ export default function Home() {
     };
 
     applyFrame();
-  }, [selectedFile, category, deviceType, deviceVariation, backgroundColor]);
+  }, [selectedFile, category, device, variation]);
 
   useEffect(() => () => {
     if (framedImageUrl) URL.revokeObjectURL(framedImageUrl);
@@ -158,7 +184,7 @@ export default function Home() {
       const a = document.createElement("a");
       a.href = framedImageUrl;
       const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `${deviceType}-${deviceVariation}-${timestamp}.png`;
+      const filename = `${device}-${variation}-${timestamp}.png`;
       a.download = filename;
       a.click();
     }
@@ -172,21 +198,11 @@ export default function Home() {
       if (current) URL.revokeObjectURL(current);
       return null;
     });
-    setBackgroundColor("");
     setError(null);
   };
 
-  const selectedFrame =
-    category && deviceType && deviceVariation && deviceList
-      ? deviceList[category]?.[deviceType]?.[deviceVariation]
-      : undefined;
-
-  const frameImageUrl = selectedFrame?.frame_png
-    ? `https://device-frames.fly.dev${selectedFrame.frame_png}`
-    : "/placeholder_frame.png";
-
-  const frameSize = selectedFrame?.frame_size;
-  const screen = selectedFrame?.template.screen;
+  const frameImageUrl = template?.frame ?? "/placeholder_frame.png";
+  const frameSize = template?.frameSize;
 
   return (
     <div className="h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans overflow-auto md:overflow-hidden p-4">
@@ -213,13 +229,11 @@ export default function Home() {
           <SettingsPanel
             deviceList={deviceList}
             selectedCategory={category}
-            selectedDevice={deviceType}
-            selectedVariation={deviceVariation}
+            selectedDevice={device}
+            selectedVariation={variation}
             onCategoryChange={setCategory}
-            onDeviceChange={setDeviceType}
-            onVariationChange={setDeviceVariation}
-            backgroundColor={backgroundColor}
-            onBackgroundColorChange={setBackgroundColor}
+            onDeviceChange={setDevice}
+            onVariationChange={setVariation}
             onDownload={handleDownload}
             onNewImage={handleReset}
             isProcessing={isProcessing}

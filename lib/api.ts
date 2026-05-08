@@ -1,13 +1,30 @@
-import { FrameOptions, DeviceListResponse } from "./types";
+import { FrameOptions, DeviceListResponse, FindTemplateResponse } from "./types";
 
 export async function listDevices(): Promise<DeviceListResponse> {
-  // Use local API route to avoid CORS issues
   const response = await fetch("/api/list-devices", { cache: "force-cache" });
-  
+
   if (!response.ok) {
     throw new Error("Failed to fetch device list");
   }
-  
+
+  return await response.json();
+}
+
+export async function findTemplate(
+  device: string,
+  variation: string,
+  category?: string
+): Promise<FindTemplateResponse> {
+  const params = new URLSearchParams({ device, variation });
+  if (category) params.set("category", category);
+  const response = await fetch(`/api/find-template?${params.toString()}`, {
+    cache: "force-cache",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to find template");
+  }
+
   return await response.json();
 }
 
@@ -16,17 +33,12 @@ export async function applyDeviceFrame(
 ): Promise<Blob> {
   const formData = new FormData();
   formData.append("file", options.file);
-  formData.append("device_type", options.device_type);
-  formData.append("device_variation", options.device_variation);
+  formData.append("device", options.device);
+  formData.append("variation", options.variation);
   if (options.category) {
     formData.append("category", options.category);
   }
-  
-  if (options.background_color) {
-    formData.append("background_color", options.background_color);
-  }
 
-  // Use local API route to avoid CORS issues
   const response = await fetch("/api/apply-frame", {
     method: "POST",
     cache: "no-store",

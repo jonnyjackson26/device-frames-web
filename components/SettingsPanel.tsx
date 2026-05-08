@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { DeviceListResponse, CATEGORY_LABELS } from "@/lib/types";
 
 interface SettingsPanelProps {
@@ -11,8 +11,6 @@ interface SettingsPanelProps {
   onCategoryChange: (category: string) => void;
   onDeviceChange: (device: string) => void;
   onVariationChange: (variation: string) => void;
-  backgroundColor: string;
-  onBackgroundColorChange: (color: string) => void;
   onDownload: () => void;
   onNewImage: () => void;
   isProcessing: boolean;
@@ -29,39 +27,62 @@ export function SettingsPanel({
   onCategoryChange,
   onDeviceChange,
   onVariationChange,
-  backgroundColor,
-  onBackgroundColorChange,
   onDownload,
   onNewImage,
   isProcessing,
   error,
   hasFramedImage,
-  hasFile,
 }: SettingsPanelProps) {
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-
   const isLoading = !deviceList;
-  const categories = deviceList
-    ? Object.keys(deviceList)
-    : selectedCategory
-      ? [selectedCategory]
-      : [];
-  const devices = deviceList && selectedCategory
-    ? Object.keys(deviceList[selectedCategory] || {})
-    : selectedDevice
-      ? [selectedDevice]
-      : [];
-  const variations = deviceList && selectedCategory && selectedDevice
-    ? Object.keys(deviceList[selectedCategory]?.[selectedDevice] || {})
-    : selectedVariation
-      ? [selectedVariation]
-      : [];
+  const devices = deviceList?.devices ?? [];
 
-  const firstDeviceForCategory = (category: string) =>
-    deviceList ? Object.keys(deviceList[category] || {})[0] || "" : selectedDevice;
+  const categories = useMemo(
+    () =>
+      devices.length
+        ? Array.from(new Set(devices.map((d) => d.category)))
+        : selectedCategory
+          ? [selectedCategory]
+          : [],
+    [devices, selectedCategory]
+  );
 
-  const firstVariationForDevice = (category: string, device: string) =>
-    deviceList ? Object.keys(deviceList[category]?.[device] || {})[0] || "" : selectedVariation;
+  const devicesInCategory = useMemo(
+    () =>
+      devices.length && selectedCategory
+        ? Array.from(
+            new Set(
+              devices.filter((d) => d.category === selectedCategory).map((d) => d.device)
+            )
+          )
+        : selectedDevice
+          ? [selectedDevice]
+          : [],
+    [devices, selectedCategory, selectedDevice]
+  );
+
+  const variations = useMemo(
+    () =>
+      devices.length && selectedCategory && selectedDevice
+        ? devices
+            .filter(
+              (d) => d.category === selectedCategory && d.device === selectedDevice
+            )
+            .map((d) => d.variation)
+        : selectedVariation
+          ? [selectedVariation]
+          : [],
+    [devices, selectedCategory, selectedDevice, selectedVariation]
+  );
+
+  const firstDeviceForCategory = (category: string) => {
+    const found = devices.find((d) => d.category === category);
+    return found?.device ?? selectedDevice;
+  };
+
+  const firstVariationForDevice = (category: string, device: string) => {
+    const found = devices.find((d) => d.category === category && d.device === device);
+    return found?.variation ?? selectedVariation;
+  };
 
   const categoryId = "settings-category";
   const deviceId = "settings-type";
@@ -127,8 +148,8 @@ export function SettingsPanel({
               className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100 disabled:opacity-50"
               disabled={isLoading || !selectedCategory}
             >
-              {devices.length ? (
-                devices.map((device) => (
+              {devicesInCategory.length ? (
+                devicesInCategory.map((device) => (
                   <option key={device} value={device}>
                     {device}
                   </option>
@@ -166,46 +187,6 @@ export function SettingsPanel({
           </div>
         </div>
       </div>
-
-      <button
-        onClick={() => setAdvancedOpen(!advancedOpen)}
-        className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors cursor-pointer -ml-4 pl-4 py-2"
-      >
-        <span>Advanced Settings</span>
-        <svg
-          className={`w-3 h-3 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
-        </svg>
-      </button>
-
-      {advancedOpen && (
-        <div className="space-y-4 mt-2">
-          <div>
-            <label
-              htmlFor="background-color"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
-            >
-              Background Color
-            </label>
-            <input
-              id="background-color"
-              type="color"
-              value={backgroundColor || "#FFFFFF"}
-              onChange={(e) => onBackgroundColorChange(e.target.value)}
-              className="h-10 cursor-pointer"
-            />
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">

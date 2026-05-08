@@ -86,13 +86,17 @@ export default function FrameCard({ category, device, variants }: FrameCardProps
     <div className="bg-white rounded-lg overflow-hidden shadow-md transition-all hover:shadow-lg hover:scale-105">
       {/* Frame Preview */}
       <div className="relative w-full h-48 bg-slate-100 flex items-center justify-center overflow-hidden group">
-        <Image
-          src={selectedVariant.thumbnail}
-          alt={`${device} - ${selectedVariant.variant}`}
-          width={200}
-          height={200}
-          className="object-contain max-w-full max-h-full"
-        />
+        {selectedVariant.thumbnail ? (
+          <Image
+            src={selectedVariant.thumbnail}
+            alt={`${device} - ${selectedVariant.variant}`}
+            width={200}
+            height={200}
+            className="object-contain max-w-full max-h-full"
+          />
+        ) : (
+          <div className="text-xs text-slate-400">No preview</div>
+        )}
         
         {/* Download Icon Overlay - Always visible on mobile, hover on desktop */}
         <button

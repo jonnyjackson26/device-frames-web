@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'device-frames.fly.dev',
-        pathname: '/frames/**',
+        hostname: 'raw.githubusercontent.com',
+        pathname: '/jonnyjackson26/device-frames-media/**',
       },
     ],
   },
