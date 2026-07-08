@@ -1,29 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { API_BASE_URL } from "@/lib/api-config";
+import { listDevices } from "device-frames";
 
 const LIST_DEVICES_REVALIDATE_SECONDS = 60 * 60 * 6;
 
 export async function GET(_request: NextRequest) {
   try {
-    const response = await fetch(`${API_BASE_URL}/list_devices`, {
-      method: "GET",
-      next: { revalidate: LIST_DEVICES_REVALIDATE_SECONDS },
-      headers: { Accept: "application/json" },
-    });
+    const devices = await listDevices();
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch device list from API" },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data, {
-      headers: {
-        "Cache-Control": `public, s-maxage=${LIST_DEVICES_REVALIDATE_SECONDS}, stale-while-revalidate=86400`,
+    return NextResponse.json(
+      {
+        count: devices.length,
+        devices: devices.map((d) => ({
+          category: d.category,
+          device: d.device,
+          variation: d.variation,
+          frame_size: d.frameSize,
+          screen: d.screen,
+          hex_color: d.hexColor ?? "",
+        })),
       },
-    });
+      {
+        headers: {
+          "Cache-Control": `public, s-maxage=${LIST_DEVICES_REVALIDATE_SECONDS}, stale-while-revalidate=86400`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching device list:", error);
     return NextResponse.json(
