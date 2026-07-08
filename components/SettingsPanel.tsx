@@ -217,7 +217,7 @@ export function SettingsPanel({
           About
         </a>
         <span>·</span>
-        <a href="/docs" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+        <a href="https://device-frames-api.fly.dev/docs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
           API
         </a>
         <span>·</span>

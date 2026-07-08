@@ -1,40 +1,53 @@
 import { BackButton } from "@/components/ui/BackButton";
 
+const linkClass = "text-blue-600 dark:text-blue-400 hover:underline";
+
 export default function About() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-black font-sans p-4">
-      <main className="max-w-2xl mx-auto py-12">
-        <BackButton />
+    <main className="min-h-screen max-w-2xl mx-auto px-4 py-12">
+      <BackButton />
 
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-8 space-y-6">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-            About Device Frames
-          </h1>
-          
-          <div className="space-y-4 text-zinc-600 dark:text-zinc-400 leading-relaxed text-lg">
-            <p>
-              Device Frames is 100% free to use and was created by <a href="https://jonny-jackson.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">jonny-jackson.com</a>.
-            </p>
+      <h1 className="text-2xl font-bold mb-6">About Device Frames</h1>
 
-            <p>
-              The application uses a custom Python backend hosted on <a href="https://fly.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">fly.io</a> to handle the heavy lifting of processing images and applying precise device frames.
-            </p>
+      <div className="space-y-4 leading-relaxed">
+        <p>
+          Device Frames is a free tool for putting screenshots and images into realistic
+          device mockups — iPhones, iPads, Android phones, and tablets. It was built by{" "}
+          <a href="https://jonny-jackson.com" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Jonny Jackson
+          </a>.
+        </p>
 
-            <p>
-              You can find more information about the project, how it was built, and the technical details in <a href="https://jonny-jackson.com/posts/device-frames/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">this blog post</a>.
-            </p>
+        <p>
+          This site applies frames using the{" "}
+          <a href="https://www.npmjs.com/package/device-frames" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            device-frames
+          </a>{" "}
+          npm package. The same frame library is also available as a hosted API (Python, on
+          fly.io) if you want to apply frames from a script or your own app — see the{" "}
+          <a href="https://device-frames-api.fly.dev/docs" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            API docs
+          </a>. You can read about how the project was built in{" "}
+          <a href="https://jonny-jackson.com/posts/device-frames/" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            this blog post
+          </a>.
+        </p>
 
-            <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50 mb-2">
-                Need more frames or features?
-              </p>
-              <p>
-                Email me at <a href="mailto:jrsjackson26@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">jrsjackson26@gmail.com</a> to request specific device models or suggest new features.
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+        <p>
+          Want the raw frame PNGs and masks instead? Browse and download them on the{" "}
+          <a href="/frame-media" className={linkClass}>
+            frame media
+          </a>{" "}
+          page.
+        </p>
+
+        <p>
+          Need more device frames or have a feature request? Email{" "}
+          <a href="mailto:jrsjackson26@gmail.com" className={linkClass}>
+            jrsjackson26@gmail.com
+          </a>.
+        </p>
+      </div>
+    </main>
   );
 }
